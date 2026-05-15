@@ -30,7 +30,7 @@ export function VerdictReveal({ verdict, onComplete }: VerdictRevealProps) {
       const timer2 = setTimeout(() => {
         setStage('DONE');
         onComplete?.();
-      }, 7000);
+      }, 9000);
       return () => {
         clearTimeout(timer1);
         clearTimeout(timer2);
@@ -83,31 +83,31 @@ export function VerdictReveal({ verdict, onComplete }: VerdictRevealProps) {
 
         {(stage === 'REVEALING' || stage === 'DONE') && (verdict) && (
           <div className="space-y-8 relative animate-in zoom-in-75 duration-500 flex flex-col items-center">
-             <div className="bg-black/60 backdrop-blur-xl border-y-8 border-white/10 p-12 md:p-24 w-full relative group shadow-[0_0_100px_rgba(0,0,0,0.5)]">
-                <div className={cn("absolute inset-0 opacity-5", accentBg)} />
+             <div className="bg-black/60 backdrop-blur-2xl border-y-[12px] border-white/10 p-16 md:p-32 w-full relative group shadow-[0_0_100px_rgba(0,0,0,0.8)]">
+                <div className={cn("absolute inset-0 opacity-10", accentBg)} />
                 
-                <p className="text-white/60 font-headline uppercase tracking-[1em] text-xl mb-8 italic font-bold">
+                <p className="text-white/60 font-headline uppercase tracking-[1.5em] text-2xl mb-12 italic font-bold">
                    {subText}
                 </p>
 
                 <h1 className={cn(
-                  "text-8xl md:text-[18rem] font-headline font-black tracking-tighter italic uppercase leading-none transform scale-110",
+                  "text-[10rem] md:text-[22rem] font-headline font-black tracking-tighter italic uppercase leading-none transform scale-110",
                   accentColor,
                   glowClass
                 )}>
                   {mainText}
                 </h1>
 
-                <div className="mt-12 flex justify-center gap-4">
-                   <div className={cn("w-32 h-1 rounded-full opacity-50", accentBg)} />
-                   <div className={cn("w-32 h-1 rounded-full", accentBg)} />
-                   <div className={cn("w-32 h-1 rounded-full opacity-50", accentBg)} />
+                <div className="mt-16 flex justify-center gap-6">
+                   <div className={cn("w-48 h-2 rounded-full opacity-30", accentBg)} />
+                   <div className={cn("w-48 h-2 rounded-full", accentBg)} />
+                   <div className={cn("w-48 h-2 rounded-full opacity-30", accentBg)} />
                 </div>
              </div>
 
-             <div className="mt-12 animate-in fade-in slide-in-from-bottom-8 delay-300 duration-1000">
-                <Badge variant="outline" className="text-xl px-8 py-2 border-white/20 text-white font-headline uppercase italic tracking-widest bg-white/5">
-                   Final Signal Transmitted
+             <div className="mt-16 animate-in fade-in slide-in-from-bottom-12 delay-500 duration-1000">
+                <Badge variant="outline" className="text-2xl px-12 py-3 border-white/20 text-white font-headline uppercase italic tracking-[0.3em] bg-white/10">
+                   Official AI Signal Transmitted
                 </Badge>
              </div>
           </div>

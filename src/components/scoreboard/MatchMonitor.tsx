@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { RefreshCcw, AlertCircle, Loader2, Trophy } from 'lucide-react';
+import { RefreshCcw, Loader2, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const API_KEY = 'f2de01d9-cdf4-4bea-96c5-552dbcf3af95';
@@ -65,28 +63,27 @@ export function MatchMonitor() {
 
   if (loading && matches.length === 0) {
     return (
-      <Card className="bg-[#141920] border-[#1e2530] p-6 w-full max-w-sm flex flex-col items-center justify-center gap-4">
+      <div className="bg-[#141920] border-[#1e2530] border rounded-2xl p-7 w-full max-w-xl flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-6 h-6 text-[#4c6ef5] animate-spin" />
-        <p className="text-[10px] font-bold text-[#5a6a80] uppercase tracking-widest font-barlow">Fetching Live Scores</p>
-      </Card>
+        <p className="text-[10px] font-bold text-[#5a6a80] uppercase tracking-[1.8px] font-barlow">Fetching Live Scores</p>
+      </div>
     );
   }
 
   if (error && matches.length === 0) {
     return (
-      <Card className="bg-[#141920] border-red-500/20 p-6 w-full max-w-sm flex flex-col items-center justify-center gap-3">
-        <AlertCircle className="w-6 h-6 text-red-500" />
-        <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest text-center font-barlow">{error}</p>
-      </Card>
+      <div className="bg-[#141920] border-red-500/20 border rounded-2xl p-7 w-full max-w-xl flex flex-col items-center justify-center gap-3">
+        <p className="text-[10px] font-bold text-red-500 uppercase tracking-[1.8px] text-center font-barlow">{error}</p>
+      </div>
     );
   }
 
   if (matches.length === 0) {
     return (
-      <Card className="bg-[#141920] border-[#1e2530] p-6 w-full max-w-sm text-center">
+      <div className="bg-[#141920] border-[#1e2530] border rounded-2xl p-7 w-full max-w-xl text-center">
         <Trophy className="w-8 h-8 text-[#3a4a5a] mx-auto mb-2" />
-        <p className="text-[10px] font-bold text-[#5a6a80] uppercase tracking-widest font-barlow">No Live T20 Matches</p>
-      </Card>
+        <p className="text-[10px] font-bold text-[#5a6a80] uppercase tracking-[1.8px] font-barlow">No Live T20 Matches</p>
+      </div>
     );
   }
 
@@ -99,28 +96,28 @@ export function MatchMonitor() {
   const wickets = scoreData?.w ?? '—';
   const overs = scoreData?.o ?? '—';
 
-  const calcCRR = () => {
+  const calcCRRValue = () => {
     if (!overs || overs === '0') return '0.00';
     const parts = String(overs).split('.');
     const balls = (parseInt(parts[0]) || 0) * 6 + (parseInt(parts[1] || '0'));
     return balls ? ((runs / balls) * 6).toFixed(2) : '0.00';
   };
 
-  const calcProjected = () => {
+  const calcProjectedValue = () => {
     const parts = String(overs).split('.');
     const balls = (parseInt(parts[0]) || 0) * 6 + (parseInt(parts[1] || '0'));
     return balls ? Math.round((runs / balls) * 120) : '—';
   };
 
   return (
-    <Card className="bg-[#141920] border-[#1e2530] rounded-2xl p-7 w-full max-w-xl relative overflow-hidden group stadium-light">
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#4c6ef5] to-transparent opacity-100" />
+    <div className="bg-[#141920] border-[#1e2530] border rounded-2xl p-7 w-full max-w-xl relative overflow-hidden group shadow-[0_0_50px_-10px_hsl(var(--primary)/0.4)]">
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#4c6ef5] to-transparent" />
       
       <div className="flex justify-between items-start mb-4">
         <div className="space-y-2">
           <p className="text-[11px] font-bold text-[#5a6a80] uppercase tracking-[1.8px] font-barlow">Current Match</p>
           <div className="flex items-center gap-2">
-            <div className="w-[9px] h-[9px] rounded-full bg-[#e63946] animate-pulse" />
+            <div className="w-[9px] h-[9px] rounded-full bg-[#e63946] animate-pulse shadow-[0_0_10px_#e63946]" />
             <span className="text-base font-bold text-[#e8edf5] font-barlow uppercase tracking-[0.3px]">
               {match.name || 'Live Match'}
             </span>
@@ -166,11 +163,11 @@ export function MatchMonitor() {
           <div className="flex gap-7">
             <div>
               <p className="text-[11px] font-bold text-[#5a6a80] uppercase tracking-[1.5px] mb-1 font-barlow">CRR</p>
-              <p className="text-[26px] font-barlow-cond font-black text-[#e8edf5] leading-none">{calcCRR()}</p>
+              <p className="text-[26px] font-barlow-cond font-black text-[#e8edf5] leading-none">{calcCRRValue()}</p>
             </div>
             <div>
               <p className="text-[11px] font-bold text-[#5a6a80] uppercase tracking-[1.5px] mb-1 font-barlow">Projected</p>
-              <p className="text-[26px] font-barlow-cond font-black text-[#e8edf5] leading-none">{calcProjected()}</p>
+              <p className="text-[26px] font-barlow-cond font-black text-[#e8edf5] leading-none">{calcProjectedValue()}</p>
             </div>
           </div>
           <div className="bg-[#1e2d4a] border border-[#2a3f62] rounded-lg px-4 py-2.5 text-[13px] font-black text-[#a8c4ff] uppercase tracking-[0.5px] font-barlow">
@@ -189,6 +186,6 @@ export function MatchMonitor() {
           </button>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

@@ -4,14 +4,11 @@
  * It takes an array of cricket event frames and a description, then uses
  * a multimodal AI model to analyze the frames, detect key elements, and provide
  * a decision, confidence score, and explanation with suggested highlight locations.
- *
- * - aiDrsVisualAnalysis - The main function to trigger the visual analysis.
- * - AIDRSVisualAnalysisInput - The input type for the analysis.
- * - AIDRSVisualAnalysisOutput - The output type for the analysis result.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { gemini15Flash } from '@genkit-ai/google-genai';
 
 // Define the schema for detected elements and their highlight suggestions
 const DetectedElementSchema = z.object({
@@ -25,7 +22,6 @@ const DetectedElementSchema = z.object({
   ]).describe('The type of element detected.'),
   description: z.string().describe('A brief description of the detected element.'),
   boundingBox: z.array(z.number()).length(4).optional().describe('Optional bounding box coordinates [x_min, y_min, x_max, y_max] for highlighting, normalized to 0-1 range.'),
-  polygon: z.array(z.array(z.number()).length(2)).optional().describe('Optional polygon coordinates [[x1, y1], [x2, y2], ...] for highlighting, normalized to 0-1 range.'),
 });
 
 // Define the schema for analysis of a single frame
@@ -70,18 +66,12 @@ export async function aiDrsVisualAnalysis(input: AIDRSVisualAnalysisInput): Prom
 
 const prompt = ai.definePrompt({
   name: 'aiDrsVisualAnalysisPrompt',
-  model: 'googleai/gemini-1.5-flash',
+  model: gemini15Flash,
   input: { schema: AIDRSVisualAnalysisInputSchema },
   output: { schema: AIDRSVisualAnalysisOutputSchema },
   config: {
-    temperature: 0.2,
+    temperature: 0.1,
     maxOutputTokens: 2048,
-    safetySettings: [
-      {
-        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-        threshold: 'BLOCK_NONE',
-      },
-    ],
   },
   prompt: `You are the ELITE VANTAGE POINT AI CRICKET UMPIRE. 
 
@@ -92,17 +82,16 @@ CRITICAL VISUAL PROTOCOLS:
 2. WICKET CHECK: Track the ball path to the stumps or the impact on the pads.
 3. CATCH CHECK: Determine if the ball touched the ground before the fielder secured control.
 
-Your decision must be LOUD, BOLD, and DECISIVE. Do not hesitate.
+Your decision must be LOUD, BOLD, and DECISIVE. 
 
 Event Description: {{{eventDescription}}}
 {{#if additionalContext}}
 Context: {{{additionalContext}}}
 {{/if}}
 
-Analysis Frames:
+Analysis Frames provided in sequence. Analyze frame-by-frame for impact and contact points.
 {{#each frameDataUris}}
---- Frame {{@index}} ---
-{{media url=this}}
+Frame {{@index}}: {{media url=this}}
 {{/each}}
 `,
 });
