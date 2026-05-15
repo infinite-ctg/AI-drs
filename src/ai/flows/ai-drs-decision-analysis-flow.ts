@@ -61,7 +61,7 @@ const aiDrsDecisionAnalysisPrompt = ai.definePrompt({
   name: 'aiDrsDecisionAnalysisPrompt',
   input: {schema: AIDRSDecisionAnalysisInputSchema},
   output: {schema: AIDRSDecisionAnalysisOutputSchema},
-  model: 'googleai/gemini-2.0-flash-lite-preview-0924',
+  model: 'googleai/gemini-2.5-flash-lite',
   prompt: `You are an expert cricket third umpire AI. Your task is to analyze cricket events and provide an AI-assisted prediction.
 
 Analyze the given cricket event which is of type '{{{clipType}}}'.

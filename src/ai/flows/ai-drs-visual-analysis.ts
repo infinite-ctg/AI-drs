@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview This file implements the AI DRS visual analysis flow using Gemini 2.0 Flash Lite.
+ * @fileOverview This file implements the AI DRS visual analysis flow using Gemini 2.5 Flash Lite.
  * It takes an array of cricket event frames and provides a loud, bold umpire decision.
  */
 
@@ -57,13 +57,13 @@ const AIDRSVisualAnalysisOutputSchema = z.object({
 export type AIDRSVisualAnalysisOutput = z.infer<typeof AIDRSVisualAnalysisOutputSchema>;
 
 export async function aiDrsVisualAnalysis(input: AIDRSVisualAnalysisInput): Promise<AIDRSVisualAnalysisOutput> {
-  console.log('AI Analysis starting with high-speed model: googleai/gemini-2.0-flash-lite-preview-0924');
+  console.log('AI Analysis starting with elite model: googleai/gemini-2.5-flash-lite');
   return aiDrsVisualAnalysisFlow(input);
 }
 
 const aiDrsVisualAnalysisPrompt = ai.definePrompt({
   name: 'aiDrsVisualAnalysisPrompt',
-  model: 'googleai/gemini-2.0-flash-lite-preview-0924',
+  model: 'googleai/gemini-2.5-flash-lite',
   input: { schema: AIDRSVisualAnalysisInputSchema },
   output: { schema: AIDRSVisualAnalysisOutputSchema },
   config: {
@@ -78,7 +78,7 @@ CRITICAL VISUAL PROTOCOLS:
 2. WICKET CHECK: Track the ball path to the stumps or the impact on the pads.
 3. CATCH CHECK: Determine if the ball touched the ground before the fielder secured control.
 
-Your decision must be BOLD. There is no room for ambiguity.
+Your decision must be BOLD and LOUD. There is no room for ambiguity.
 
 Event Description: {{{eventDescription}}}
 {{#if additionalContext}}
@@ -104,7 +104,7 @@ const aiDrsVisualAnalysisFlow = ai.defineFlow(
       if (!output) throw new Error("AI failed to provide a verdict.");
       return output;
     } catch (err: any) {
-      console.error('Gemini 2.0 Analysis failure:', err);
+      console.error('Gemini 2.5 Analysis failure:', err);
       throw new Error(`AI processing failed: ${err.message || 'Unknown error'}`);
     }
   }
