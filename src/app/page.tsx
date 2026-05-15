@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { Radar, ShieldCheck, Zap, ArrowRight, PlayCircle, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MatchMonitor } from '@/components/scoreboard/MatchMonitor';
 
 export default function Home() {
   return (
@@ -102,7 +101,7 @@ export default function Home() {
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-4xl font-headline font-black text-white italic uppercase tracking-tighter">Powered By Vantage Logic</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto font-medium">
-              We leverage Google Gemini Vision and Firebase Cloud Infrastructure to deliver sub-second cricket analytics.
+              We leverage Google Gemini 2.5 Flash Lite and Firebase Cloud Infrastructure to deliver sub-second cricket analytics.
             </p>
           </div>
 

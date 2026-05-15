@@ -7,7 +7,6 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-// Define the schema for detected elements
 const DetectedElementSchema = z.object({
   type: z.enum([
     'bowler_foot_position',
@@ -20,14 +19,12 @@ const DetectedElementSchema = z.object({
   description: z.string().describe('A brief description of the detected element.'),
 });
 
-// Define the schema for analysis of a single frame
 const AnalyzedFrameSchema = z.object({
   frameIndex: z.number().int().describe('The index of the frame in the original sequence.'),
   frameDescription: z.string().describe('A detailed textual analysis of this specific frame.'),
   detectedElements: z.array(DetectedElementSchema).describe('An array of detected elements within this frame.'),
 });
 
-// Define the input schema for the AI DRS visual analysis
 const AIDRSVisualAnalysisInputSchema = z.object({
   eventDescription: z.string().describe('A brief textual description of the cricket event to be analyzed.'),
   frameDataUris: z.array(
@@ -37,7 +34,6 @@ const AIDRSVisualAnalysisInputSchema = z.object({
 });
 export type AIDRSVisualAnalysisInput = z.infer<typeof AIDRSVisualAnalysisInputSchema>;
 
-// Define the output schema for the AI DRS visual analysis
 const AIDRSVisualAnalysisOutputSchema = z.object({
   finalDecision: z.enum([
     'OUT',
@@ -78,7 +74,7 @@ CRITICAL VISUAL PROTOCOLS:
 2. WICKET CHECK: Track the ball path to the stumps or the impact on the pads.
 3. CATCH CHECK: Determine if the ball touched the ground before the fielder secured control.
 
-Your decision must be BOLD and LOUD. There is no room for ambiguity.
+Your decision must be BOLD and LOUD. There is no room for ambiguity. Speak the decision LOUDLY in your final output.
 
 Event Description: {{{eventDescription}}}
 {{#if additionalContext}}
