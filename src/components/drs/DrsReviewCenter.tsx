@@ -61,7 +61,6 @@ export function DrsReviewCenter() {
         return;
       }
 
-      console.log("File uploaded successfully:", selectedFile.name);
       setError(null);
       setFile(selectedFile);
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -84,7 +83,6 @@ export function DrsReviewCenter() {
   };
 
   const extractFrames = async (video: HTMLVideoElement, frameCount: number = 6): Promise<string[]> => {
-    console.log("Starting frame extraction...");
     return new Promise((resolve, reject) => {
       const frames: string[] = [];
       const canvas = document.createElement('canvas');
@@ -106,14 +104,12 @@ export function DrsReviewCenter() {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           frames.push(canvas.toDataURL('image/jpeg', 0.6));
           capturedCount++;
-          console.log(`Captured frame ${capturedCount}/${frameCount}`);
 
           if (capturedCount < frameCount) {
             capture(interval * (capturedCount + 1));
           } else {
             video.onseeked = null;
-            video.currentTime = originalTime; // Reset for user
-            console.log("Frame extraction complete.");
+            video.currentTime = originalTime;
             resolve(frames);
           }
         };
@@ -127,19 +123,16 @@ export function DrsReviewCenter() {
     if (!file || !videoRef.current) return;
 
     try {
-      console.log("Initiating AI Processing Pipeline...");
       setProcessingState('EXTRACTING');
       const frames = await extractFrames(videoRef.current);
 
       setProcessingState('ANALYZING');
-      console.log("Sending frames to Gemini Vision API...");
       const response = await aiDrsVisualAnalysis({
         eventDescription: "Cricket Decision Review System analysis for wicket, catch, or crease integrity.",
         frameDataUris: frames,
         additionalContext: "Carefully analyze frame by frame for ball trajectory, bat contact, and crease line relative to foot position."
       });
 
-      console.log("Gemini Response received:", response);
       setResult(response);
       setProcessingState('COMPLETED');
       setShowVerdict(true);
