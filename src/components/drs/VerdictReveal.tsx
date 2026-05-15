@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 type Verdict = 
   | 'OUT' 
@@ -46,7 +47,6 @@ export function VerdictReveal({ verdict, onComplete }: VerdictRevealProps) {
   const glowClass = isNegative ? 'neon-glow-destructive' : isPositive ? 'neon-glow-success' : 'neon-glow-primary';
   const accentBg = isNegative ? 'bg-red-500' : isPositive ? 'bg-emerald-500' : 'bg-primary';
 
-  // Clean up display text to be LOUD
   let mainText = verdict || '';
   let subText = 'Vantage Point AI Verdict';
 
@@ -60,7 +60,6 @@ export function VerdictReveal({ verdict, onComplete }: VerdictRevealProps) {
   return (
     <div className="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-8 backdrop-blur-3xl transition-all duration-500 animate-in fade-in">
       <div className="max-w-6xl w-full text-center relative">
-        {/* Extreme Glow Background */}
         <div className={cn(
           "absolute inset-0 blur-[200px] opacity-30 transition-all duration-1000 scale-150",
           stage === 'REVEALING' || stage === 'DONE' ? accentBg : 'bg-primary'
@@ -77,7 +76,7 @@ export function VerdictReveal({ verdict, onComplete }: VerdictRevealProps) {
               </div>
             </div>
             <p className="text-primary font-headline text-lg tracking-[0.5em] uppercase italic animate-pulse font-bold">
-              Calibrating Vision Grid
+              Neural Frame Calibration
             </p>
           </div>
         )}
@@ -114,13 +113,6 @@ export function VerdictReveal({ verdict, onComplete }: VerdictRevealProps) {
           </div>
         )}
       </div>
-
-      <style jsx global>{`
-        @keyframes progress-indefinite {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-      `}</style>
     </div>
   );
 }
