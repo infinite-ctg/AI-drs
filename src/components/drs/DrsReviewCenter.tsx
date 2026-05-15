@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from 'react';
-import { Upload, Radar, ShieldAlert, History, Maximize2, Play, ChevronRight, Share2 } from 'lucide-react';
+import { Upload, Radar, ShieldAlert, History, Maximize2, Play, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -10,22 +10,48 @@ import { VerdictReveal } from './VerdictReveal';
 import { aiDrsDecisionAnalysis, type AIDRSDecisionAnalysisOutput } from '@/ai/flows/ai-drs-decision-analysis-flow';
 import { useToast } from '@/hooks/use-toast';
 import { MatchMonitor } from '@/components/scoreboard/MatchMonitor';
+import { cn } from '@/lib/utils';
 
 export function DrsReviewCenter() {
   const [file, setFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [result, setResult] = useState<AIDRSDecisionAnalysisOutput | null>(null);
   const [showVerdict, setShowVerdict] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
+  const handleFiles = (files: FileList | null) => {
+    if (files && files[0]) {
+      const selectedFile = files[0];
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
       setResult(null);
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFiles(e.target.files);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    handleFiles(e.dataTransfer.files);
   };
 
   const startAnalysis = async () => {
@@ -59,11 +85,23 @@ export function DrsReviewCenter() {
     }
   };
 
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
       {/* Media Player Viewport */}
       <div className="xl:col-span-3 space-y-4">
-        <Card className="glass-panel overflow-hidden relative aspect-video flex items-center justify-center bg-black/40 group stadium-light">
+        <Card 
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={cn(
+            "glass-panel overflow-hidden relative aspect-video flex items-center justify-center bg-black/40 group stadium-light transition-all duration-300",
+            isDragging && "border-primary bg-primary/5 scale-[0.99]"
+          )}
+        >
           {previewUrl ? (
             <div className="w-full h-full relative">
               <img 
@@ -114,20 +152,37 @@ export function DrsReviewCenter() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-6 p-12 text-center">
-              <div className="w-24 h-24 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center animate-pulse">
+            <div className="flex flex-col items-center gap-6 p-12 text-center pointer-events-none">
+              <div className={cn(
+                "w-24 h-24 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center transition-all duration-300",
+                isDragging ? "animate-bounce scale-110 bg-primary/20" : "animate-pulse"
+              )}>
                 <Upload className="w-10 h-10 text-primary" />
               </div>
-              <div>
-                <h2 className="text-2xl font-headline font-bold text-white uppercase tracking-tight mb-2 italic">Awaiting Media Feed</h2>
-                <p className="text-muted-foreground text-sm max-w-sm">Upload delivery footage, catch clips, or screenshots for AI-assisted third umpire review.</p>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-headline font-bold text-white uppercase tracking-tight italic">
+                  {isDragging ? "Drop to Analyze" : "Awaiting Media Feed"}
+                </h2>
+                <p className="text-muted-foreground text-sm max-w-sm">
+                  Upload or drag delivery footage, catch clips, or screenshots for AI-assisted third umpire review.
+                </p>
               </div>
-              <label className="cursor-pointer">
-                <input type="file" className="hidden" onChange={handleFileChange} accept="video/*,image/*" />
-                <Button size="lg" className="bg-primary hover:bg-primary/80 font-headline uppercase tracking-widest text-xs h-12 px-8">
+              <div className="pointer-events-auto">
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  ref={fileInputRef}
+                  onChange={handleFileChange} 
+                  accept="video/*,image/*" 
+                />
+                <Button 
+                  size="lg" 
+                  onClick={triggerFileUpload}
+                  className="bg-primary hover:bg-primary/80 font-headline uppercase tracking-widest text-xs h-12 px-8"
+                >
                   Connect Feed
                 </Button>
-              </label>
+              </div>
             </div>
           )}
 
