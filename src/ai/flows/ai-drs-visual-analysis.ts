@@ -8,7 +8,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { gemini15Flash } from '@genkit-ai/google-genai';
 
 // Define the schema for detected elements and their highlight suggestions
 const DetectedElementSchema = z.object({
@@ -64,9 +63,9 @@ export async function aiDrsVisualAnalysis(input: AIDRSVisualAnalysisInput): Prom
   return aiDrsVisualAnalysisFlow(input);
 }
 
-const prompt = ai.definePrompt({
+const aiDrsVisualAnalysisPrompt = ai.definePrompt({
   name: 'aiDrsVisualAnalysisPrompt',
-  model: gemini15Flash,
+  model: 'googleai/gemini-1.5-flash',
   input: { schema: AIDRSVisualAnalysisInputSchema },
   output: { schema: AIDRSVisualAnalysisOutputSchema },
   config: {
@@ -103,7 +102,7 @@ const aiDrsVisualAnalysisFlow = ai.defineFlow(
     outputSchema: AIDRSVisualAnalysisOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    const { output } = await aiDrsVisualAnalysisPrompt(input);
     if (!output) throw new Error("AI failed to provide a verdict.");
     return output;
   }
