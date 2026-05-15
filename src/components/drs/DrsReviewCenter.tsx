@@ -9,6 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { VerdictReveal } from './VerdictReveal';
 import { aiDrsDecisionAnalysis, type AIDRSDecisionAnalysisOutput } from '@/ai/flows/ai-drs-decision-analysis-flow';
 import { useToast } from '@/hooks/use-toast';
+import { MatchMonitor } from '@/components/scoreboard/MatchMonitor';
 
 export function DrsReviewCenter() {
   const [file, setFile] = useState<File | null>(null);
@@ -32,10 +33,6 @@ export function DrsReviewCenter() {
 
     setIsAnalyzing(true);
     try {
-      // In a real app, we'd convert the file to base64 properly
-      // For this prototype, we'll simulate the AI call with dummy data if needed
-      // or try to use a placeholder if the file is too big for a quick base64
-      
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64String = reader.result as string;
