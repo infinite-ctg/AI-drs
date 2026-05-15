@@ -79,7 +79,7 @@ const prompt = ai.definePrompt({
     temperature: 0.5,
     maxOutputTokens: 2048, // Ensure enough tokens for detailed explanations and multiple frame analyses
   },
-  prompt: `You are an expert cricket umpire and AI visual analysis system. Your task is to analyze cricket events frame by frame based on the provided images and textual description.\n\nCritically analyze the provided frames to detect and reason about the following elements:\n- Bowler's foot position relative to the crease line.\n- The position and path of the ball.\n- Any contact with the bat, pad, or gloves.\n- Whether a catch was cleanly taken, including ground touch possibility.\n- The state of the stumps or bails if relevant.\n\nFor each frame, you MUST:\n1. Provide a concise 'frameDescription' summarizing the key observations.\n2. Identify and list 'detectedElements' with their 'type', 'description', and precise 'boundingBox' or 'polygon' coordinates for visual highlighting. Coordinates MUST be normalized to a 0-1 range (e.g., top-left corner of an image is [0,0], bottom-right is [1,1]). Use boundingBox for rectangular areas and polygon for lines or more complex shapes like ball trajectory.\n\nBased on your comprehensive analysis of all frames, determine a 'finalDecision', a 'confidencePercentage' (0-100), and a detailed 'explanation'.\n\nEvent Description: {{{eventDescription}}}\n{{#if additionalContext}}\nAdditional Context: {{{additionalContext}}}\n{{/if}}\n\nReview the following frames:\n{{#each frameDataUris}}\nFrame Index {{math @index "+1"}}:\n{{media url=this}}\n{{/each}}\n`,
+  prompt: `You are an expert cricket umpire and AI visual analysis system. Your task is to analyze cricket events frame by frame based on the provided images and textual description.\n\nCritically analyze the provided frames to detect and reason about the following elements:\n- Bowler's foot position relative to the crease line.\n- The position and path of the ball.\n- Any contact with the bat, pad, or gloves.\n- Whether a catch was cleanly taken, including ground touch possibility.\n- The state of the stumps or bails if relevant.\n\nFor each frame, you MUST:\n1. Provide a concise 'frameDescription' summarizing the key observations.\n2. Identify and list 'detectedElements' with their 'type', 'description', and precise 'boundingBox' or 'polygon' coordinates for visual highlighting. Coordinates MUST be normalized to a 0-1 range (e.g., top-left corner of an image is [0,0], bottom-right is [1,1]). Use boundingBox for rectangular areas and polygon for lines or more complex shapes like ball trajectory.\n\nBased on your comprehensive analysis of all frames, determine a 'finalDecision', a 'confidencePercentage' (0-100), and a detailed 'explanation'.\n\nEvent Description: {{{eventDescription}}}\n{{#if additionalContext}}\nAdditional Context: {{{additionalContext}}}\n{{/if}}\n\nReview the following frames:\n{{#each frameDataUris}}\n--- Frame ---\n{{media url=this}}\n{{/each}}\n`,
 });
 
 const aiDrsVisualAnalysisFlow = ai.defineFlow(
@@ -88,7 +88,7 @@ const aiDrsVisualAnalysisFlow = ai.defineFlow(
     inputSchema: AIDRSVisualAnalysisInputSchema,
     outputSchema: AIDRSVisualAnalysisOutputSchema,
     // Use a multimodal model capable of vision
-    model: 'googleai/gemini-1.5-flash', // Or googleai/gemini-2.5-flash-image if specific image modification is needed, but 1.5-flash is good for analysis.
+    model: 'googleai/gemini-1.5-flash', 
   },
   async (input) => {
     // Construct the media parts for the prompt.
