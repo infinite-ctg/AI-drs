@@ -61,6 +61,7 @@ export function DrsReviewCenter() {
         return;
       }
 
+      console.log("File uploaded successfully:", selectedFile.name);
       setError(null);
       setFile(selectedFile);
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -83,6 +84,7 @@ export function DrsReviewCenter() {
   };
 
   const extractFrames = async (video: HTMLVideoElement, frameCount: number = 6): Promise<string[]> => {
+    console.log("Starting frame extraction...");
     return new Promise((resolve, reject) => {
       const frames: string[] = [];
       const canvas = document.createElement('canvas');
@@ -104,12 +106,14 @@ export function DrsReviewCenter() {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           frames.push(canvas.toDataURL('image/jpeg', 0.6));
           capturedCount++;
+          console.log(`Captured frame ${capturedCount}/${frameCount}`);
 
           if (capturedCount < frameCount) {
             capture(interval * (capturedCount + 1));
           } else {
             video.onseeked = null;
             video.currentTime = originalTime; // Reset for user
+            console.log("Frame extraction complete.");
             resolve(frames);
           }
         };
@@ -123,21 +127,25 @@ export function DrsReviewCenter() {
     if (!file || !videoRef.current) return;
 
     try {
+      console.log("Initiating AI Processing Pipeline...");
       setProcessingState('EXTRACTING');
       const frames = await extractFrames(videoRef.current);
 
       setProcessingState('ANALYZING');
+      console.log("Sending frames to Gemini Vision API...");
       const response = await aiDrsVisualAnalysis({
-        eventDescription: "Cricket Decision Review System analysis",
+        eventDescription: "Cricket Decision Review System analysis for wicket, catch, or crease integrity.",
         frameDataUris: frames,
-        additionalContext: "Analyze for LBW, caught behind, or crease integrity."
+        additionalContext: "Carefully analyze frame by frame for ball trajectory, bat contact, and crease line relative to foot position."
       });
 
+      console.log("Gemini Response received:", response);
       setResult(response);
       setProcessingState('COMPLETED');
       setShowVerdict(true);
       
     } catch (err: any) {
+      console.error("Processing pipeline failure:", err);
       setProcessingState('FAILED');
       toast({
         variant: "destructive",
@@ -305,11 +313,11 @@ export function DrsReviewCenter() {
         <div className="flex flex-wrap gap-4 items-center justify-between">
            <div className="flex gap-2">
               <Button 
-                disabled={!file || processingState !== 'IDLE'} 
+                disabled={!file || (processingState !== 'IDLE' && processingState !== 'COMPLETED')} 
                 onClick={startAnalysis} 
                 className="bg-primary text-white font-headline uppercase px-8 h-12"
               >
-                Initiate AI Review
+                {processingState === 'COMPLETED' ? "Re-Run Analysis" : "Initiate AI Review"}
               </Button>
               <Button variant="outline" className="border-white/10 font-headline uppercase px-6 h-12" onClick={() => { 
                 if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -324,7 +332,7 @@ export function DrsReviewCenter() {
       </div>
 
       <div className="space-y-6">
-        <Card className="glass-panel border-white/10 p-5">
+        <Card className="glass-panel border-white/10 p-5 overflow-hidden">
           <div className="flex items-center gap-2 mb-6">
             <ShieldAlert className="w-5 h-5 text-primary" />
             <h3 className="font-headline font-bold text-sm text-white uppercase tracking-widest">Decision Analysis</h3>
@@ -337,6 +345,16 @@ export function DrsReviewCenter() {
             </div>
           ) : (
             <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+               <div className="bg-primary/10 border-y border-primary/20 -mx-5 px-5 py-4 text-center">
+                  <h2 className={cn(
+                    "text-3xl font-headline font-black italic uppercase tracking-tighter leading-none mb-1",
+                    result.finalDecision.includes('OUT') ? "text-red-500 neon-glow-destructive" : "text-emerald-500 neon-glow-success"
+                  )}>
+                    {result.finalDecision}
+                  </h2>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Final Verdict</p>
+               </div>
+
                <div>
                   <div className="flex justify-between items-end mb-2">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase">AI Confidence</span>
@@ -365,7 +383,7 @@ export function DrsReviewCenter() {
 
                <div className="pt-4 border-t border-white/5 text-center">
                   <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest italic mb-3">AI-Assisted Prediction Substrate</p>
-                  <Button variant="outline" className="w-full text-xs font-headline uppercase border-primary/20 text-primary hover:bg-primary/10">Full Replay Breakdown</Button>
+                  <Button variant="outline" className="w-full text-xs font-headline uppercase border-primary/20 text-primary hover:bg-primary/10" onClick={() => setShowVerdict(true)}>Show Verdict reveal</Button>
                </div>
             </div>
           )}
