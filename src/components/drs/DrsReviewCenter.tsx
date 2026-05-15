@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from 'react';
-import { Upload, Radar, ShieldAlert, History, Maximize2, Play, Share2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Upload, Radar, ShieldAlert, History, Maximize2, Play, Pause, Share2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -19,15 +19,66 @@ export function DrsReviewCenter() {
   const [result, setResult] = useState<AIDRSDecisionAnalysisOutput | null>(null);
   const [showVerdict, setShowVerdict] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  
+  // Video Playback State
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Cleanup object URL to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const handleFiles = (files: FileList | null) => {
     if (files && files[0]) {
       const selectedFile = files[0];
+      
+      // Supported types: mp4, mov (quicktime), webm
+      const validTypes = ['video/mp4', 'video/quicktime', 'video/webm'];
+      if (!validTypes.includes(selectedFile.type)) {
+        toast({
+          variant: "destructive",
+          title: "Unsupported Format",
+          description: "Please upload a valid video file (MP4, MOV, or WEBM)."
+        });
+        return;
+      }
+
+      // Size limit: 50MB
+      const maxSize = 50 * 1024 * 1024;
+      if (selectedFile.size > maxSize) {
+        toast({
+          variant: "destructive",
+          title: "File Too Large",
+          description: "Video size must be under 50MB."
+        });
+        return;
+      }
+
+      setError(null);
       setFile(selectedFile);
-      setPreviewUrl(URL.createObjectURL(selectedFile));
+      
+      // Revoke old URL if exists before creating a new one
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      
+      const url = URL.createObjectURL(selectedFile);
+      setPreviewUrl(url);
       setResult(null);
+      setIsPlaying(false);
+      setCurrentTime(0);
+
+      toast({
+        title: "Video Loaded",
+        description: `${selectedFile.name} is ready for analysis.`
+      });
     }
   };
 
@@ -89,6 +140,53 @@ export function DrsReviewCenter() {
     fileInputRef.current?.click();
   };
 
+  // Video Event Handlers
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime);
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+    }
+  };
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleSeek = (value: number[]) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = value[0];
+      setCurrentTime(value[0]);
+    }
+  };
+
+  const handleVideoError = () => {
+    setError("Failed to load video. It might be corrupted or in an unsupported format.");
+    toast({
+      variant: "destructive",
+      title: "Playback Error",
+      description: "The video could not be played."
+    });
+  };
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    const centiseconds = Math.floor((time % 1) * 100);
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
       {/* Media Player Viewport */}
@@ -102,14 +200,20 @@ export function DrsReviewCenter() {
             isDragging && "border-primary bg-primary/5 scale-[0.99]"
           )}
         >
-          {previewUrl ? (
-            <div className="w-full h-full relative">
-              <img 
+          {previewUrl && !error ? (
+            <div className="w-full h-full relative group/controls">
+              <video 
+                ref={videoRef}
                 src={previewUrl} 
-                alt="Review Content" 
                 className="w-full h-full object-contain"
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
+                onError={handleVideoError}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                onClick={togglePlay}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none opacity-0 group-hover/controls:opacity-100 transition-opacity duration-300" />
               
               {/* Overlay HUD */}
               <div className="absolute top-6 left-6 flex flex-col gap-1">
@@ -125,28 +229,38 @@ export function DrsReviewCenter() {
                 </Button>
               </div>
 
-              {/* Scrubber HUD */}
-              <div className="absolute bottom-6 left-6 right-6 space-y-4">
+              {/* Scrubber HUD - Visible on hover */}
+              <div className="absolute bottom-6 left-6 right-6 space-y-4 opacity-0 group-hover/controls:opacity-100 transition-opacity duration-300">
                 <div className="flex justify-between items-end">
                   <div className="flex gap-4">
-                    <Button size="icon" variant="secondary" className="rounded-full w-12 h-12">
-                      <Play className="fill-current" />
+                    <Button size="icon" variant="secondary" className="rounded-full w-12 h-12" onClick={togglePlay}>
+                      {isPlaying ? <Pause className="fill-current" /> : <Play className="fill-current" />}
                     </Button>
                     <div>
-                      <h3 className="text-white font-headline font-bold text-lg uppercase italic tracking-tight">Main Cam Review</h3>
-                      <p className="text-muted-foreground text-[10px] uppercase font-bold tracking-widest">Frame 1204 / 2800</p>
+                      <h3 className="text-white font-headline font-bold text-lg uppercase italic tracking-tight truncate max-w-[200px]">
+                        {file?.name || "Main Cam Review"}
+                      </h3>
+                      <p className="text-muted-foreground text-[10px] uppercase font-bold tracking-widest">
+                        {formatTime(currentTime)} / {formatTime(duration)}
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="border-white/10 text-xs font-headline uppercase bg-white/5">Slow-Mo</Button>
-                    <Button size="sm" variant="outline" className="border-white/10 text-xs font-headline uppercase bg-white/5">Ultra-Edge</Button>
+                    <Button size="sm" variant="outline" className="border-white/10 text-[10px] font-headline uppercase bg-white/5 h-8" onClick={() => { if(videoRef.current) videoRef.current.playbackRate = 0.5 }}>0.5x</Button>
+                    <Button size="sm" variant="outline" className="border-white/10 text-[10px] font-headline uppercase bg-white/5 h-8" onClick={() => { if(videoRef.current) videoRef.current.playbackRate = 1.0 }}>1.0x</Button>
                   </div>
                 </div>
                 <div className="space-y-1">
-                   <Slider defaultValue={[45]} max={100} step={1} className="[&>span:first-child]:bg-primary/20 [&_[role=slider]]:bg-primary [&_[role=slider]]:border-white" />
+                   <Slider 
+                     value={[currentTime]} 
+                     max={duration || 100} 
+                     step={0.01} 
+                     onValueChange={handleSeek}
+                     className="[&>span:first-child]:bg-primary/20 [&_[role=slider]]:bg-primary [&_[role=slider]]:border-white cursor-pointer" 
+                   />
                    <div className="flex justify-between">
                       <span className="text-[8px] text-muted-foreground font-bold">00:00.00</span>
-                      <span className="text-[8px] text-muted-foreground font-bold">00:08.42</span>
+                      <span className="text-[8px] text-muted-foreground font-bold">{formatTime(duration)}</span>
                    </div>
                 </div>
               </div>
@@ -157,14 +271,17 @@ export function DrsReviewCenter() {
                 "w-24 h-24 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center transition-all duration-300",
                 isDragging ? "animate-bounce scale-110 bg-primary/20" : "animate-pulse"
               )}>
-                <Upload className="w-10 h-10 text-primary" />
+                {error ? <AlertCircle className="w-10 h-10 text-destructive" /> : <Upload className="w-10 h-10 text-primary" />}
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-headline font-bold text-white uppercase tracking-tight italic">
-                  {isDragging ? "Drop to Analyze" : "Awaiting Media Feed"}
+                <h2 className={cn(
+                  "text-2xl font-headline font-bold uppercase tracking-tight italic",
+                  error ? "text-destructive" : "text-white"
+                )}>
+                  {error ? "Video Error" : isDragging ? "Drop to Analyze" : "Awaiting Media Feed"}
                 </h2>
                 <p className="text-muted-foreground text-sm max-w-sm">
-                  Upload or drag delivery footage, catch clips, or screenshots for AI-assisted third umpire review.
+                  {error ? error : "Upload or drag delivery footage (MP4, MOV, WEBM) for AI-assisted third umpire review."}
                 </p>
               </div>
               <div className="pointer-events-auto">
@@ -173,14 +290,18 @@ export function DrsReviewCenter() {
                   className="hidden" 
                   ref={fileInputRef}
                   onChange={handleFileChange} 
-                  accept="video/*,image/*" 
+                  accept="video/mp4,video/quicktime,video/webm" 
                 />
                 <Button 
                   size="lg" 
                   onClick={triggerFileUpload}
-                  className="bg-primary hover:bg-primary/80 font-headline uppercase tracking-widest text-xs h-12 px-8"
+                  variant={error ? "destructive" : "default"}
+                  className={cn(
+                    "font-headline uppercase tracking-widest text-xs h-12 px-8",
+                    !error && "bg-primary hover:bg-primary/80"
+                  )}
                 >
-                  Connect Feed
+                  {error ? "Try Another" : "Connect Feed"}
                 </Button>
               </div>
             </div>
@@ -200,8 +321,16 @@ export function DrsReviewCenter() {
         {/* Action Controls */}
         <div className="flex flex-wrap gap-4 items-center justify-between">
            <div className="flex gap-2">
-              <Button disabled={!file || isAnalyzing} onClick={startAnalysis} className="bg-primary text-white font-headline uppercase px-6">Process Review</Button>
-              <Button variant="outline" className="border-white/10 font-headline uppercase px-6" onClick={() => { setFile(null); setPreviewUrl(null); setResult(null); }}>Reset System</Button>
+              <Button disabled={!file || isAnalyzing || !!error} onClick={startAnalysis} className="bg-primary text-white font-headline uppercase px-6">Process Review</Button>
+              <Button variant="outline" className="border-white/10 font-headline uppercase px-6" onClick={() => { 
+                if (previewUrl) URL.revokeObjectURL(previewUrl);
+                setFile(null); 
+                setPreviewUrl(null); 
+                setResult(null); 
+                setError(null);
+                setIsPlaying(false);
+                setCurrentTime(0);
+              }}>Reset System</Button>
            </div>
            <div className="flex gap-3">
               <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-white"><Share2 className="w-5 h-5" /></Button>
