@@ -9,7 +9,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {googleAI} from '@genkit-ai/google-genai';
 
 const AIDRSDecisionAnalysisInputSchema = z.object({
   mediaDataUri: z
@@ -72,7 +71,7 @@ const aiDrsDecisionAnalysisPrompt = ai.definePrompt({
   name: 'aiDrsDecisionAnalysisPrompt',
   input: {schema: AIDRSDecisionAnalysisInputSchema},
   output: {schema: AIDRSDecisionAnalysisOutputSchema},
-  model: googleAI.model('gemini-1.5-flash'), // Using gemini-1.5-flash for multimodal analysis
+  model: 'googleai/gemini-1.5-flash',
   prompt: `You are an expert cricket third umpire AI. Your task is to analyze cricket events from provided media and a description, then provide an AI-assisted prediction.\n\nAnalyze the given cricket event which is of type '{{{clipType}}}'.\nDescription of the event: {{{clipDescription}}}\nMedia for analysis: {{media url=mediaDataUri}}\n\nBased on your analysis, determine the decision, its category, your confidence in the prediction, and a clear explanation of your reasoning. If possible, identify specific moments or frames that are crucial to the decision.\n\nIMPORTANT: Do NOT fake precision. This is an AI-assisted prediction.\nProvide your response in JSON format according to the output schema.`,
 });
 

@@ -12,7 +12,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 
 // Define the schema for detected elements and their highlight suggestions
 const DetectedElementSchema = z.object({
@@ -71,7 +70,7 @@ export async function aiDrsVisualAnalysis(input: AIDRSVisualAnalysisInput): Prom
 
 const prompt = ai.definePrompt({
   name: 'aiDrsVisualAnalysisPrompt',
-  model: googleAI.model('gemini-1.5-flash'),
+  model: 'googleai/gemini-1.5-flash',
   input: { schema: AIDRSVisualAnalysisInputSchema },
   output: { schema: AIDRSVisualAnalysisOutputSchema },
   config: {
