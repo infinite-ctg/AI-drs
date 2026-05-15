@@ -1,10 +1,6 @@
 'use server';
 /**
  * @fileOverview This file defines a Genkit flow for AI-powered cricket umpire decision analysis.
- *
- * - aiDrsDecisionAnalysis - A function that handles the AI DRS decision analysis process.
- * - AIDRSDecisionAnalysisInput - The input type for the aiDrsDecisionAnalysis function.
- * - AIDRSDecisionAnalysisOutput - The return type for the aiDrsDecisionAnalysis function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -50,12 +46,6 @@ const AIDRSDecisionAnalysisOutputSchema = z.object({
     .describe(
       "A concise explanation of the AI's reasoning for the decision, highlighting key visual evidence."
     ),
-  highlightedFramesDescription: z
-    .string()
-    .optional()
-    .describe(
-      "A description of specific frames or moments in the media that are crucial to the decision (e.g., 'frame at 0.5s showing foot over line'). This is a textual description for potential UI highlighting."
-    ),
 });
 export type AIDRSDecisionAnalysisOutput = z.infer<
   typeof AIDRSDecisionAnalysisOutputSchema
@@ -71,17 +61,14 @@ const aiDrsDecisionAnalysisPrompt = ai.definePrompt({
   name: 'aiDrsDecisionAnalysisPrompt',
   input: {schema: AIDRSDecisionAnalysisInputSchema},
   output: {schema: AIDRSDecisionAnalysisOutputSchema},
-  model: 'googleai/gemini-1.5-flash',
-  prompt: `You are an expert cricket third umpire AI. Your task is to analyze cricket events from provided media and a description, then provide an AI-assisted prediction.
+  model: 'googleai/gemini-2.0-flash-lite-preview-0924',
+  prompt: `You are an expert cricket third umpire AI. Your task is to analyze cricket events and provide an AI-assisted prediction.
 
 Analyze the given cricket event which is of type '{{{clipType}}}'.
-Description of the event: {{{clipDescription}}}
-Media for analysis: {{media url=mediaDataUri}}
+Description: {{{clipDescription}}}
+Media: {{media url=mediaDataUri}}
 
-Based on your analysis, determine the decision, its category, your confidence in the prediction, and a clear explanation of your reasoning. If possible, identify specific moments or frames that are crucial to the decision.
-
-IMPORTANT: Your decision must be LOUD and CLEAR. 
-Provide your response in JSON format according to the output schema.`,
+Provide a LOUD and BOLD decision.`,
 });
 
 const aiDrsDecisionAnalysisFlow = ai.defineFlow(
@@ -93,7 +80,7 @@ const aiDrsDecisionAnalysisFlow = ai.defineFlow(
   async (input) => {
     const {output} = await aiDrsDecisionAnalysisPrompt(input);
     if (!output) {
-      throw new Error('AI DRS decision analysis prompt did not return any output.');
+      throw new Error('AI prompt did not return output.');
     }
     return output;
   }

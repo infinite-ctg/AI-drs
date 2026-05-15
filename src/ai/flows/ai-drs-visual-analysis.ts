@@ -1,15 +1,13 @@
 'use server';
 /**
- * @fileOverview This file implements the AI DRS visual analysis flow.
- * It takes an array of cricket event frames and a description, then uses
- * a multimodal AI model to analyze the frames, detect key elements, and provide
- * a decision, confidence score, and explanation with suggested highlight locations.
+ * @fileOverview This file implements the AI DRS visual analysis flow using Gemini 2.0 Flash Lite.
+ * It takes an array of cricket event frames and provides a loud, bold umpire decision.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-// Define the schema for detected elements and their highlight suggestions
+// Define the schema for detected elements
 const DetectedElementSchema = z.object({
   type: z.enum([
     'bowler_foot_position',
@@ -20,7 +18,6 @@ const DetectedElementSchema = z.object({
     'other_relevant_element'
   ]).describe('The type of element detected.'),
   description: z.string().describe('A brief description of the detected element.'),
-  boundingBox: z.array(z.number()).length(4).optional().describe('Optional bounding box coordinates [x_min, y_min, x_max, y_max] for highlighting, normalized to 0-1 range.'),
 });
 
 // Define the schema for analysis of a single frame
@@ -60,36 +57,35 @@ const AIDRSVisualAnalysisOutputSchema = z.object({
 export type AIDRSVisualAnalysisOutput = z.infer<typeof AIDRSVisualAnalysisOutputSchema>;
 
 export async function aiDrsVisualAnalysis(input: AIDRSVisualAnalysisInput): Promise<AIDRSVisualAnalysisOutput> {
-  console.log('AI Analysis starting with model: googleai/gemini-1.5-flash');
+  console.log('AI Analysis starting with high-speed model: googleai/gemini-2.0-flash-lite-preview-0924');
   return aiDrsVisualAnalysisFlow(input);
 }
 
 const aiDrsVisualAnalysisPrompt = ai.definePrompt({
   name: 'aiDrsVisualAnalysisPrompt',
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-2.0-flash-lite-preview-0924',
   input: { schema: AIDRSVisualAnalysisInputSchema },
   output: { schema: AIDRSVisualAnalysisOutputSchema },
   config: {
     temperature: 0.1,
-    maxOutputTokens: 2048,
   },
   prompt: `You are the ELITE VANTAGE POINT AI CRICKET UMPIRE. 
 
-Your task is to analyze these cricket frames with 100% precision. 
+Your task is to analyze these cricket frames with 100% precision and deliver a LOUD, BOLD, and DECISIVE verdict.
 
 CRITICAL VISUAL PROTOCOLS:
 1. NO BALL CHECK: Look at the bowler's front foot relative to the popping crease.
 2. WICKET CHECK: Track the ball path to the stumps or the impact on the pads.
 3. CATCH CHECK: Determine if the ball touched the ground before the fielder secured control.
 
-Your decision must be LOUD, BOLD, and DECISIVE. There is no room for ambiguity.
+Your decision must be BOLD. There is no room for ambiguity.
 
 Event Description: {{{eventDescription}}}
 {{#if additionalContext}}
 Context: {{{additionalContext}}}
 {{/if}}
 
-Analysis Frames provided in sequence. Analyze frame-by-frame for impact and contact points.
+Analysis Frames provided in sequence.
 {{#each frameDataUris}}
 Frame {{@index}}: {{media url=this}}
 {{/each}}
@@ -108,7 +104,7 @@ const aiDrsVisualAnalysisFlow = ai.defineFlow(
       if (!output) throw new Error("AI failed to provide a verdict.");
       return output;
     } catch (err: any) {
-      console.error('Gemini Analysis failure:', err);
+      console.error('Gemini 2.0 Analysis failure:', err);
       throw new Error(`AI processing failed: ${err.message || 'Unknown error'}`);
     }
   }

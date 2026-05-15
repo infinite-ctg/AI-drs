@@ -94,7 +94,8 @@ export function MatchMonitor() {
   const currentScore = scoreArr[scoreArr.length - 1];
   const innNum = scoreArr.length;
 
-  const teamBatting = (currentScore?.inning || 'Live Score').replace(/\s+inning\s+\d+/i, '').trim().toUpperCase();
+  const inningStr = currentScore?.inning || 'Live Score';
+  const teamBatting = inningStr.replace(/\s+inning\s+\d+/i, '').trim().toUpperCase();
   const runs = currentScore?.r ?? '—';
   const wickets = currentScore?.w ?? '—';
   const overs = currentScore?.o ?? '0';
