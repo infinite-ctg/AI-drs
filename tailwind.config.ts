@@ -12,6 +12,8 @@ export default {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
         headline: ['Space Grotesk', 'sans-serif'],
+        barlow: ['Barlow', 'sans-serif'],
+        'barlow-cond': ['"Barlow Condensed"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
