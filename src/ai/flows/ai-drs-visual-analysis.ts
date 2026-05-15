@@ -104,7 +104,7 @@ const aiDrsVisualAnalysisFlow = ai.defineFlow(
       if (!output) throw new Error("AI failed to provide a verdict.");
       return output;
     } catch (err: any) {
-      console.error('Gemini 2.5 Analysis failure:', err);
+      console.error('Gemini 2.5 Flash Lite Analysis failure:', err);
       throw new Error(`AI processing failed: ${err.message || 'Unknown error'}`);
     }
   }

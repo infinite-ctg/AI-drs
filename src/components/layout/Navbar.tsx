@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Radar, Database, Sparkles, Activity } from 'lucide-react';
+import { Radar } from 'lucide-react';
 
 export function Navbar() {
   return (
@@ -16,8 +16,6 @@ export function Navbar() {
 
         <div className="hidden md:flex items-center gap-8">
           <NavLink href="/drs" icon={<Radar className="w-4 h-4" />} label="AI Review" />
-          <NavLink href="/vault" icon={<Database className="w-4 h-4" />} label="Vault" />
-          <NavLink href="/scriptwriter" icon={<Sparkles className="w-4 h-4" />} label="Scriptwriter" />
         </div>
 
         <div className="flex items-center gap-4">

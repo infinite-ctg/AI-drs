@@ -37,9 +37,6 @@ export default function Home() {
                     Initiate Review <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="h-14 px-10 border-white/10 hover:bg-white/5 font-headline text-sm uppercase tracking-widest italic">
-                  <Link href="/vault">View Archive</Link>
-                </Button>
               </div>
 
               <div className="grid grid-cols-3 gap-8 pt-8 border-t border-white/5">
@@ -88,7 +85,6 @@ export default function Home() {
                         <p className="text-[10px] text-muted-foreground uppercase font-bold">In-Match Protocol 772A</p>
                       </div>
                     </div>
-                    <MatchMonitor />
                   </div>
                </div>
 
