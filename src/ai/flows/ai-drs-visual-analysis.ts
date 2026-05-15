@@ -62,7 +62,7 @@ const AIDRSVisualAnalysisOutputSchema = z.object({
   ]).describe('The final AI-predicted decision for the cricket event.'),
   confidencePercentage: z.number().min(0).max(100).describe('The AI\'s confidence in its final decision, as a percentage (0-100).'),
   explanation: z.string().describe('A detailed textual explanation and reasoning behind the AI\'s final decision.'),
-  analyzedFrames: z.array(AnalyzedFrameSchema).describe('An array of objects, each containing analysis for a specific frame, including detected elements and highlight suggestions.'),
+  analyzedFrames: z.array(AnalyzedFrameSchema).optional().describe('An array of objects, each containing analysis for a specific frame, including detected elements and highlight suggestions.'),
 });
 export type AIDRSVisualAnalysisOutput = z.infer<typeof AIDRSVisualAnalysisOutputSchema>;
 
@@ -74,12 +74,36 @@ const prompt = ai.definePrompt({
   name: 'aiDrsVisualAnalysisPrompt',
   input: { schema: AIDRSVisualAnalysisInputSchema },
   output: { schema: AIDRSVisualAnalysisOutputSchema },
-  // Setting a higher temperature might make the explanations more verbose, but could also reduce accuracy. Let's keep it moderate.
   config: {
     temperature: 0.5,
-    maxOutputTokens: 2048, // Ensure enough tokens for detailed explanations and multiple frame analyses
+    maxOutputTokens: 2048,
   },
-  prompt: `You are an expert cricket umpire and AI visual analysis system. Your task is to analyze cricket events frame by frame based on the provided images and textual description.\n\nCritically analyze the provided frames to detect and reason about the following elements:\n- Bowler's foot position relative to the crease line.\n- The position and path of the ball.\n- Any contact with the bat, pad, or gloves.\n- Whether a catch was cleanly taken, including ground touch possibility.\n- The state of the stumps or bails if relevant.\n\nFor each frame, you MUST:\n1. Provide a concise 'frameDescription' summarizing the key observations.\n2. Identify and list 'detectedElements' with their 'type', 'description', and precise 'boundingBox' or 'polygon' coordinates for visual highlighting. Coordinates MUST be normalized to a 0-1 range (e.g., top-left corner of an image is [0,0], bottom-right is [1,1]). Use boundingBox for rectangular areas and polygon for lines or more complex shapes like ball trajectory.\n\nBased on your comprehensive analysis of all frames, determine a 'finalDecision', a 'confidencePercentage' (0-100), and a detailed 'explanation'.\n\nEvent Description: {{{eventDescription}}}\n{{#if additionalContext}}\nAdditional Context: {{{additionalContext}}}\n{{/if}}\n\nReview the following frames:\n{{#each frameDataUris}}\n--- Frame ---\n{{media url=this}}\n{{/each}}\n`,
+  prompt: `You are an expert cricket umpire and AI visual analysis system. Your task is to analyze cricket events frame by frame based on the provided images and textual description.
+
+Critically analyze the provided frames to detect and reason about the following elements:
+- Bowler's foot position relative to the crease line.
+- The position and path of the ball.
+- Any contact with the bat, pad, or gloves.
+- Whether a catch was cleanly taken, including ground touch possibility.
+- The state of the stumps or bails if relevant.
+
+For each frame, you should:
+1. Provide a concise 'frameDescription' summarizing the key observations.
+2. Identify and list 'detectedElements' with their 'type', 'description', and precise 'boundingBox' or 'polygon' coordinates for visual highlighting. Coordinates MUST be normalized to a 0-1 range.
+
+Based on your comprehensive analysis of all frames, determine a 'finalDecision', a 'confidencePercentage' (0-100), and a detailed 'explanation'.
+
+Event Description: {{{eventDescription}}}
+{{#if additionalContext}}
+Additional Context: {{{additionalContext}}}
+{{/if}}
+
+Review the following frames:
+{{#each frameDataUris}}
+--- Frame ---
+{{media url=this}}
+{{/each}}
+`,
 });
 
 const aiDrsVisualAnalysisFlow = ai.defineFlow(
@@ -87,13 +111,9 @@ const aiDrsVisualAnalysisFlow = ai.defineFlow(
     name: 'aiDrsVisualAnalysisFlow',
     inputSchema: AIDRSVisualAnalysisInputSchema,
     outputSchema: AIDRSVisualAnalysisOutputSchema,
-    // Use a multimodal model capable of vision
     model: 'googleai/gemini-1.5-flash', 
   },
   async (input) => {
-    // Construct the media parts for the prompt.
-    // The prompt expects each frameDataUri to be passed individually with `media url=this`
-    // The handlebars template already handles iterating over `frameDataUris`
     const { output } = await prompt(input);
     return output!;
   }

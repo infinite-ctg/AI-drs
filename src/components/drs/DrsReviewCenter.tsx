@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
@@ -125,25 +124,20 @@ export function DrsReviewCenter() {
 
     try {
       setProcessingState('EXTRACTING');
-      console.log('Extraction sequence initiated...');
       const frames = await extractFrames(videoRef.current);
-      console.log(`Extracted ${frames.length} frames successfully.`);
 
       setProcessingState('ANALYZING');
-      console.log('Dispatching payload to Gemini Vision Substrate...');
       const response = await aiDrsVisualAnalysis({
         eventDescription: "Cricket Decision Review System analysis",
         frameDataUris: frames,
         additionalContext: "Analyze for LBW, caught behind, or crease integrity."
       });
 
-      console.log('Analysis complete. Final verdict received.');
       setResult(response);
       setProcessingState('COMPLETED');
       setShowVerdict(true);
       
     } catch (err: any) {
-      console.error('Processing failure:', err);
       setProcessingState('FAILED');
       toast({
         variant: "destructive",
@@ -357,14 +351,16 @@ export function DrsReviewCenter() {
                     <p className="text-xs text-white/90 leading-relaxed font-medium">{result.explanation}</p>
                   </div>
 
-                  <div className="space-y-2">
-                    <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Visual Evidence</h4>
-                    <ul className="space-y-2">
-                      {result.analyzedFrames.slice(0, 3).map((frame, i) => (
-                        <EvidenceItem key={i} label={`Frame ${frame.frameIndex + 1}`} status={frame.frameDescription.split('.')[0]} />
-                      ))}
-                    </ul>
-                  </div>
+                  {result.analyzedFrames && result.analyzedFrames.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Visual Evidence</h4>
+                      <ul className="space-y-2">
+                        {result.analyzedFrames.slice(0, 3).map((frame, i) => (
+                          <EvidenceItem key={i} label={`Frame ${frame.frameIndex + 1}`} status={frame.frameDescription.split('.')[0]} />
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                </div>
 
                <div className="pt-4 border-t border-white/5 text-center">
@@ -378,7 +374,9 @@ export function DrsReviewCenter() {
         <MatchMonitor />
       </div>
 
-      <VerdictReveal verdict={result?.finalDecision as any} onComplete={() => setShowVerdict(false)} />
+      {showVerdict && result && (
+        <VerdictReveal verdict={result.finalDecision as any} onComplete={() => setShowVerdict(false)} />
+      )}
     </div>
   );
 }
