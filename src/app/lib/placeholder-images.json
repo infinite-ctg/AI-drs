@@ -1,0 +1,29 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "stadium-hero",
+      "description": "A dramatic cricket stadium at night with bright lights",
+      "imageUrl": "https://picsum.photos/seed/cricket1/1200/600",
+      "imageHint": "cricket stadium night"
+    },
+    {
+      "id": "delivery-clip",
+      "description": "A close up of a cricket delivery hitting the pads",
+      "imageUrl": "https://picsum.photos/seed/cricket2/800/450",
+      "imageHint": "cricket delivery pad"
+    },
+    {
+      "id": "catch-clip",
+      "description": "A fielder taking a low catch near the ground",
+      "imageUrl": "https://picsum.photos/seed/cricket3/800/450",
+      "imageHint": "cricket catch"
+    },
+    {
+      "id": "crease-line",
+      "description": "View of the batting crease during a run out",
+      "imageUrl": "https://picsum.photos/seed/cricket4/800/450",
+      "imageHint": "cricket crease"
+    }
+  ]
+}
