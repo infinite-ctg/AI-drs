@@ -37,7 +37,8 @@ export function MatchMonitor() {
         ) && m.score && m.score.length > 0;
       });
 
-      setMatches(live.length ? live : allMatches.filter(m => m.score && m.score.length));
+      const finalMatches = live.length ? live : allMatches.filter(m => m.score && m.score.length);
+      setMatches(finalMatches);
       setLoading(false);
       setSecondsLeft(300);
     } catch (err: any) {
@@ -96,7 +97,7 @@ export function MatchMonitor() {
   const teamBatting = (currentScore?.inning || 'Live Score').replace(/\s+inning\s+\d+/i, '').trim().toUpperCase();
   const runs = currentScore?.r ?? '—';
   const wickets = currentScore?.w ?? '—';
-  const overs = currentScore?.o ?? '—';
+  const overs = currentScore?.o ?? '0';
 
   const calcCRR = () => {
     if (!overs || overs === '0' || overs === '—') return '0.00';
@@ -114,8 +115,10 @@ export function MatchMonitor() {
 
   return (
     <div className="bg-[#141920] border-[#1e2530] border rounded-2xl p-8 w-full max-w-2xl relative overflow-hidden font-barlow">
+      {/* Cinematic Highlight Bar */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#4c6ef5] to-transparent" />
       
+      {/* Header section */}
       <div className="flex justify-between items-start mb-4">
         <div className="space-y-2">
           <p className="text-[11px] font-bold text-[#5a6a80] uppercase tracking-[1.8px]">Current Match</p>
@@ -133,6 +136,7 @@ export function MatchMonitor() {
         </div>
       </div>
 
+      {/* Match selector (shown if multiple matches) */}
       {matches.length > 1 && (
         <div className="mb-4">
           <select 
@@ -147,6 +151,7 @@ export function MatchMonitor() {
         </div>
       )}
 
+      {/* Main Score section */}
       <div className="flex justify-between items-end mb-5">
         <div className="space-y-1">
           <p className="text-[13px] font-semibold text-[#7a8fa8] uppercase tracking-[1.2px]">{teamBatting}</p>
@@ -163,6 +168,7 @@ export function MatchMonitor() {
 
       <div className="h-[1px] bg-[#1e2a38] mb-5"></div>
 
+      {/* Bottom stats row */}
       <div className="flex justify-between items-center">
         <div className="flex gap-7">
           <div>
@@ -179,6 +185,7 @@ export function MatchMonitor() {
         </div>
       </div>
 
+      {/* Refresh info */}
       <div className="mt-4 flex justify-between items-center text-[11px] text-[#3a4a5a] font-semibold uppercase tracking-[0.5px]">
         <span>Next refresh in {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, '0')}</span>
         <button 

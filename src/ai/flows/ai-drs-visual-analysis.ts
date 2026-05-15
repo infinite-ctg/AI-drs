@@ -52,7 +52,7 @@ const AIDRSVisualAnalysisOutputSchema = z.object({
     'CATCH VALIDITY: VALID',
     'CATCH VALIDITY: INVALID',
     'UNDEFINED_DECISION'
-  ]).describe('The final AI-predicted decision. This must be LOUD and clear.'),
+  ]).describe('The final AI-predicted decision.'),
   confidencePercentage: z.number().min(0).max(100).describe('The AI\'s confidence in its final decision (0-100).'),
   explanation: z.string().describe('A detailed textual explanation of the logic.'),
   analyzedFrames: z.array(AnalyzedFrameSchema).optional().describe('Optional per-frame analysis.'),
@@ -60,6 +60,7 @@ const AIDRSVisualAnalysisOutputSchema = z.object({
 export type AIDRSVisualAnalysisOutput = z.infer<typeof AIDRSVisualAnalysisOutputSchema>;
 
 export async function aiDrsVisualAnalysis(input: AIDRSVisualAnalysisInput): Promise<AIDRSVisualAnalysisOutput> {
+  console.log('AI Analysis starting with model: googleai/gemini-1.5-flash');
   return aiDrsVisualAnalysisFlow(input);
 }
 
@@ -81,7 +82,7 @@ CRITICAL VISUAL PROTOCOLS:
 2. WICKET CHECK: Track the ball path to the stumps or the impact on the pads.
 3. CATCH CHECK: Determine if the ball touched the ground before the fielder secured control.
 
-Your decision must be LOUD, BOLD, and DECISIVE. 
+Your decision must be LOUD, BOLD, and DECISIVE. There is no room for ambiguity.
 
 Event Description: {{{eventDescription}}}
 {{#if additionalContext}}
@@ -102,8 +103,13 @@ const aiDrsVisualAnalysisFlow = ai.defineFlow(
     outputSchema: AIDRSVisualAnalysisOutputSchema,
   },
   async (input) => {
-    const { output } = await aiDrsVisualAnalysisPrompt(input);
-    if (!output) throw new Error("AI failed to provide a verdict.");
-    return output;
+    try {
+      const { output } = await aiDrsVisualAnalysisPrompt(input);
+      if (!output) throw new Error("AI failed to provide a verdict.");
+      return output;
+    } catch (err: any) {
+      console.error('Gemini Analysis failure:', err);
+      throw new Error(`AI processing failed: ${err.message || 'Unknown error'}`);
+    }
   }
 );
